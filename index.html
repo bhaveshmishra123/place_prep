@@ -1,0 +1,647 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Placement Preparation Tracker</title>
+<style>
+  /* ===================== ROOT & RESET ===================== */
+  :root{
+    --purple: #6C63FF;
+    --cyan: #00C9FF;
+    --green: #00E676;
+    --orange: #FF9800;
+    --pink: #FF4D6D;
+    --glass: rgba(255,255,255,0.08);
+    --glass-border: rgba(255,255,255,0.18);
+    --text-main: #F5F6FF;
+    --text-dim: rgba(245,246,255,0.65);
+  }
+
+  *{ margin:0; padding:0; box-sizing:border-box; }
+
+  html{ scroll-behavior:smooth; }
+
+  body{
+    font-family:'Poppins', 'Segoe UI', system-ui, sans-serif;
+    color:var(--text-main);
+    min-height:100vh;
+    overflow-x:hidden;
+    background:linear-gradient(-45deg, #1b1035, #0f1b3d, #201045, #0a2540);
+    background-size:400% 400%;
+    animation:gradientShift 18s ease infinite;
+  }
+
+  @keyframes gradientShift{
+    0%{background-position:0% 50%;}
+    50%{background-position:100% 50%;}
+    100%{background-position:0% 50%;}
+  }
+
+  @font-face{
+    font-family:'Poppins';
+    src:local('Poppins');
+  }
+
+  /* subtle animated blobs behind content for depth */
+  body::before, body::after{
+    content:"";
+    position:fixed;
+    width:45vw; height:45vw;
+    border-radius:50%;
+    filter:blur(120px);
+    opacity:0.25;
+    z-index:-1;
+    animation:float 14s ease-in-out infinite;
+  }
+  body::before{
+    background:var(--purple);
+    top:-10%; left:-10%;
+  }
+  body::after{
+    background:var(--cyan);
+    bottom:-15%; right:-10%;
+    animation-delay:3s;
+  }
+  @keyframes float{
+    0%,100%{ transform:translate(0,0) scale(1); }
+    50%{ transform:translate(40px,-30px) scale(1.1); }
+  }
+
+  h1,h2,h3{ font-weight:700; letter-spacing:0.3px; }
+
+  /* ===================== NAVBAR ===================== */
+  .navbar{
+    position:sticky;
+    top:0;
+    z-index:100;
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:16px;
+    padding:14px 28px;
+    background:rgba(20,15,45,0.55);
+    backdrop-filter:blur(18px);
+    -webkit-backdrop-filter:blur(18px);
+    border-bottom:1px solid var(--glass-border);
+    flex-wrap:wrap;
+  }
+
+  .brand{
+    display:flex;
+    align-items:center;
+    gap:10px;
+    font-size:1.15rem;
+    font-weight:700;
+    background:linear-gradient(90deg,var(--purple),var(--cyan));
+    -webkit-background-clip:text;
+    background-clip:text;
+    color:transparent;
+  }
+  .brand .logo-dot{
+    width:12px; height:12px; border-radius:50%;
+    background:linear-gradient(135deg,var(--pink),var(--orange));
+    box-shadow:0 0 12px var(--pink);
+  }
+
+  .nav-links{
+    display:flex;
+    gap:10px;
+    flex-wrap:wrap;
+  }
+
+  .nav-btn{
+    padding:9px 18px;
+    border-radius:30px;
+    border:1px solid var(--glass-border);
+    background:var(--glass);
+    color:var(--text-main);
+    font-size:0.88rem;
+    font-weight:600;
+    cursor:pointer;
+    transition:all 0.3s ease;
+    white-space:nowrap;
+  }
+  .nav-btn:hover{
+    background:linear-gradient(90deg,var(--purple),var(--cyan));
+    box-shadow:0 0 18px rgba(108,99,255,0.6);
+    transform:translateY(-2px);
+  }
+  .nav-btn.active{
+    background:linear-gradient(90deg,var(--purple),var(--cyan));
+  }
+
+  .search-wrap{
+    position:relative;
+    flex:1;
+    min-width:180px;
+    max-width:280px;
+  }
+  .search-wrap input{
+    width:100%;
+    padding:10px 16px 10px 38px;
+    border-radius:30px;
+    border:1px solid var(--glass-border);
+    background:rgba(255,255,255,0.06);
+    color:var(--text-main);
+    font-size:0.88rem;
+    outline:none;
+    transition:all 0.3s ease;
+  }
+  .search-wrap input::placeholder{ color:var(--text-dim); }
+  .search-wrap input:focus{
+    border-color:var(--cyan);
+    box-shadow:0 0 14px rgba(0,201,255,0.45);
+  }
+  .search-wrap .icon{
+    position:absolute;
+    left:13px; top:50%;
+    transform:translateY(-50%);
+    opacity:0.6;
+    font-size:0.9rem;
+  }
+
+  /* ===================== LAYOUT ===================== */
+  .container{
+    max-width:1200px;
+    margin:0 auto;
+    padding:32px 24px 80px;
+  }
+
+  section{ scroll-margin-top:90px; }
+
+  /* ===================== DASHBOARD ===================== */
+  .dashboard{
+    text-align:center;
+    padding:40px 20px 30px;
+  }
+  .dashboard h1{
+    font-size:2.6rem;
+    background:linear-gradient(90deg,var(--pink),var(--orange),var(--cyan));
+    -webkit-background-clip:text;
+    background-clip:text;
+    color:transparent;
+    margin-bottom:8px;
+  }
+  .dashboard p.subtitle{
+    color:var(--text-dim);
+    font-size:1rem;
+    margin-bottom:34px;
+  }
+
+  .stats-grid{
+    display:grid;
+    grid-template-columns:repeat(auto-fit, minmax(220px, 1fr));
+    gap:20px;
+    margin-bottom:30px;
+  }
+
+  .stat-card{
+    background:var(--glass);
+    border:1px solid var(--glass-border);
+    backdrop-filter:blur(16px);
+    -webkit-backdrop-filter:blur(16px);
+    border-radius:22px;
+    padding:26px;
+    position:relative;
+    overflow:hidden;
+    transition:transform 0.35s ease, box-shadow 0.35s ease;
+  }
+  .stat-card:hover{
+    transform:translateY(-6px);
+    box-shadow:0 12px 30px rgba(0,0,0,0.35);
+  }
+  .stat-card .stat-label{
+    font-size:0.82rem;
+    color:var(--text-dim);
+    text-transform:uppercase;
+    letter-spacing:1px;
+    margin-bottom:10px;
+  }
+  .stat-card .stat-value{
+    font-size:2.2rem;
+    font-weight:700;
+  }
+  .stat-card.total .stat-value{ color:var(--cyan); }
+  .stat-card.done .stat-value{ color:var(--green); }
+  .stat-card.remaining .stat-value{ color:var(--orange); }
+  .stat-card.percent .stat-value{ color:var(--pink); }
+
+  .progress-outer{
+    background:var(--glass);
+    border:1px solid var(--glass-border);
+    backdrop-filter:blur(16px);
+    border-radius:22px;
+    padding:24px 26px;
+    text-align:left;
+  }
+  .progress-outer .progress-top{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    margin-bottom:12px;
+    font-size:0.92rem;
+    color:var(--text-dim);
+  }
+  .progress-bar-bg{
+    width:100%;
+    height:16px;
+    border-radius:20px;
+    background:rgba(255,255,255,0.08);
+    overflow:hidden;
+    border:1px solid var(--glass-border);
+  }
+  .progress-bar-fill{
+    height:100%;
+    border-radius:20px;
+    background:linear-gradient(90deg,var(--purple),var(--cyan),var(--green));
+    background-size:200% 100%;
+    animation:barShine 4s linear infinite;
+    width:0%;
+    transition:width 0.6s ease;
+  }
+  @keyframes barShine{
+    0%{ background-position:0% 0%; }
+    100%{ background-position:200% 0%; }
+  }
+
+  /* ===================== SECTION HEADERS ===================== */
+  .section-header{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    flex-wrap:wrap;
+    gap:12px;
+    margin:60px 0 22px;
+  }
+  .section-header h2{
+    font-size:1.7rem;
+  }
+  .section-header .section-tag{
+    font-size:0.8rem;
+    padding:6px 14px;
+    border-radius:20px;
+    color:var(--text-dim);
+    background:rgba(255,255,255,0.06);
+    border:1px solid var(--glass-border);
+  }
+  .section-complete-msg{
+    display:none;
+    font-weight:700;
+    font-size:0.95rem;
+    padding:8px 16px;
+    border-radius:20px;
+    background:linear-gradient(90deg,var(--green),var(--cyan));
+    color:#04210f;
+    animation:pop 0.5s ease;
+  }
+  .section-complete-msg.show{ display:inline-block; }
+
+  @keyframes pop{
+    0%{ transform:scale(0.6); opacity:0; }
+    60%{ transform:scale(1.08); opacity:1; }
+    100%{ transform:scale(1); }
+  }
+
+  /* ===================== TOPIC GRID / CARDS ===================== */
+  .topics-grid{
+    display:grid;
+    grid-template-columns:repeat(auto-fill, minmax(240px, 1fr));
+    gap:18px;
+  }
+
+  .topic-card{
+    position:relative;
+    display:flex;
+    align-items:center;
+    gap:14px;
+    padding:18px 18px;
+    border-radius:18px;
+    border:1px solid var(--glass-border);
+    background:linear-gradient(135deg, rgba(108,99,255,0.28), rgba(0,201,255,0.18));
+    backdrop-filter:blur(14px);
+    -webkit-backdrop-filter:blur(14px);
+    cursor:pointer;
+    transition:transform 0.28s ease, box-shadow 0.28s ease, background 0.4s ease;
+    overflow:hidden;
+  }
+
+  .topic-card::before{
+    content:"";
+    position:absolute;
+    inset:0;
+    background:radial-gradient(circle at var(--mx,50%) var(--my,50%), rgba(255,255,255,0.18), transparent 60%);
+    opacity:0;
+    transition:opacity 0.3s ease;
+    pointer-events:none;
+  }
+  .topic-card:hover::before{ opacity:1; }
+
+  .topic-card:hover{
+    transform:translateY(-5px) scale(1.015);
+    box-shadow:0 0 24px rgba(0,201,255,0.35);
+  }
+
+  .topic-card.completed{
+    background:linear-gradient(135deg, rgba(0,230,118,0.35), rgba(0,201,255,0.18));
+    border-color:rgba(0,230,118,0.5);
+  }
+  .topic-card.completed:hover{
+    box-shadow:0 0 24px rgba(0,230,118,0.45);
+  }
+
+  .topic-card.just-completed{
+    animation:completePulse 0.55s ease;
+  }
+  @keyframes completePulse{
+    0%{ transform:scale(1); }
+    35%{ transform:scale(1.06); }
+    100%{ transform:scale(1); }
+  }
+
+  .checkbox{
+    flex-shrink:0;
+    width:26px; height:26px;
+    border-radius:8px;
+    border:2px solid rgba(255,255,255,0.55);
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    font-size:0.85rem;
+    transition:all 0.25s ease;
+    background:rgba(255,255,255,0.08);
+  }
+  .topic-card.completed .checkbox{
+    background:var(--green);
+    border-color:var(--green);
+    color:#04210f;
+    font-weight:700;
+  }
+
+  .topic-name{
+    font-size:0.95rem;
+    font-weight:500;
+    line-height:1.3;
+  }
+
+  .topic-card.hidden{ display:none; }
+
+  /* ===================== FOOTER ===================== */
+  .footer{
+    text-align:center;
+    padding:30px 20px 10px;
+    color:var(--text-dim);
+    font-size:0.85rem;
+  }
+
+  /* ===================== SCROLLBAR ===================== */
+  ::-webkit-scrollbar{ width:10px; }
+  ::-webkit-scrollbar-track{ background:transparent; }
+  ::-webkit-scrollbar-thumb{
+    background:linear-gradient(var(--purple),var(--cyan));
+    border-radius:10px;
+  }
+
+  /* ===================== RESPONSIVE ===================== */
+  @media (max-width: 640px){
+    .navbar{ padding:12px 16px; }
+    .dashboard h1{ font-size:1.9rem; }
+    .search-wrap{ max-width:none; order:3; width:100%; }
+    .nav-links{ order:2; }
+    .topics-grid{ grid-template-columns:repeat(auto-fill, minmax(150px,1fr)); }
+  }
+</style>
+</head>
+<body>
+
+  <!-- ===================== NAVBAR ===================== -->
+  <nav class="navbar">
+    <div class="brand"><span class="logo-dot"></span> PlacePrep</div>
+    <div class="nav-links">
+      <button class="nav-btn active" data-target="dashboard">Dashboard</button>
+      <button class="nav-btn" data-target="quant">Quantitative Aptitude</button>
+      <button class="nav-btn" data-target="reasoning">Logical Reasoning</button>
+    </div>
+    <div class="search-wrap">
+      <span class="icon">🔍</span>
+      <input type="text" id="searchInput" placeholder="Search topics...">
+    </div>
+  </nav>
+
+  <div class="container">
+
+    <!-- ===================== DASHBOARD ===================== -->
+    <section id="dashboard" class="dashboard">
+      <h1>Placement Preparation Tracker</h1>
+      <p class="subtitle">Track every topic, stay consistent, ace your placements 🚀</p>
+
+      <div class="stats-grid">
+        <div class="stat-card total">
+          <div class="stat-label">Total Topics</div>
+          <div class="stat-value" id="totalCount">0</div>
+        </div>
+        <div class="stat-card done">
+          <div class="stat-label">Completed</div>
+          <div class="stat-value" id="doneCount">0</div>
+        </div>
+        <div class="stat-card remaining">
+          <div class="stat-label">Remaining</div>
+          <div class="stat-value" id="remainingCount">0</div>
+        </div>
+        <div class="stat-card percent">
+          <div class="stat-label">Completion</div>
+          <div class="stat-value" id="percentCount">0%</div>
+        </div>
+      </div>
+
+      <div class="progress-outer">
+        <div class="progress-top">
+          <span>Overall Progress</span>
+          <span id="progressText">0 / 0 topics</span>
+        </div>
+        <div class="progress-bar-bg">
+          <div class="progress-bar-fill" id="progressFill"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===================== QUANTITATIVE APTITUDE ===================== -->
+    <section id="quant">
+      <div class="section-header">
+        <h2>📊 Quantitative Aptitude</h2>
+        <span class="section-tag" id="quantTag">0/0 completed</span>
+        <span class="section-complete-msg" id="quantCompleteMsg">🎉 Section Completed</span>
+      </div>
+      <div class="topics-grid" id="quantGrid"></div>
+    </section>
+
+    <!-- ===================== LOGICAL REASONING ===================== -->
+    <section id="reasoning">
+      <div class="section-header">
+        <h2>🧠 Logical Reasoning</h2>
+        <span class="section-tag" id="reasoningTag">0/0 completed</span>
+        <span class="section-complete-msg" id="reasoningCompleteMsg">🎉 Section Completed</span>
+      </div>
+      <div class="topics-grid" id="reasoningGrid"></div>
+    </section>
+
+  </div>
+
+  <div class="footer">Built with pure HTML, CSS &amp; JS · Progress saved locally on this device</div>
+
+<script>
+/* =========================================================
+   DATA: topic lists for each section
+   ========================================================= */
+const quantTopics = [
+  "Numbers","Problems on Numbers","Problems on H.C.F and L.C.M","Decimal Fraction",
+  "Simplification","Percentage","Average","Ratio and Proportion","Chain Rule",
+  "Profit and Loss","Simple Interest","Compound Interest","Partnership","Time and Work",
+  "Pipes and Cisterns","Time and Distance","Problems on Trains","Boats and Streams",
+  "Races and Games","Problems on Ages","Calendar","Clock","Geometry","Mensuration",
+  "Area","Volume and Surface Area","Height and Distance","Square Root and Cube Root",
+  "Surds and Indices","Logarithm","Arithmetic Progression (AP)","Geometric Progression (GP)",
+  "Permutation and Combination","Probability","Alligation and Mixture","Stocks and Shares",
+  "True Discount","Banker's Discount"
+];
+
+const reasoningTopics = [
+  "Number Series","Alphabet Series","Odd One Out","Analogy","Classification",
+  "Coding-Decoding","Blood Relations","Direction Sense","Ranking and Order",
+  "Seating Arrangement","Puzzle","Syllogism","Statement and Conclusion",
+  "Statement and Assumption","Statement and Argument","Cause and Effect",
+  "Decision Making","Data Sufficiency","Mathematical Operations","Venn Diagram",
+  "Input Output","Cube and Dice","Mirror Images","Paper Folding and Cutting"
+];
+
+/* localStorage key */
+const STORAGE_KEY = "placementTrackerProgress";
+
+/* load saved progress object { "quant-Numbers": true, ... } */
+let progress = JSON.parse(localStorage.getItem(STORAGE_KEY)) || {};
+
+/* =========================================================
+   BUILD CARDS
+   ========================================================= */
+function buildGrid(containerId, topics, prefix){
+  const grid = document.getElementById(containerId);
+  grid.innerHTML = "";
+  topics.forEach(topic => {
+    const key = prefix + "-" + topic;
+    const isDone = !!progress[key];
+
+    const card = document.createElement("div");
+    card.className = "topic-card" + (isDone ? " completed" : "");
+    card.dataset.key = key;
+    card.dataset.name = topic.toLowerCase();
+
+    card.innerHTML = `
+      <div class="checkbox">${isDone ? "✓" : ""}</div>
+      <div class="topic-name">${topic}</div>
+    `;
+
+    // toggle completion on click
+    card.addEventListener("click", () => toggleTopic(card, key));
+
+    // subtle glow-follow-cursor effect
+    card.addEventListener("mousemove", (e) => {
+      const rect = card.getBoundingClientRect();
+      card.style.setProperty("--mx", `${e.clientX - rect.left}px`);
+      card.style.setProperty("--my", `${e.clientY - rect.top}px`);
+    });
+
+    grid.appendChild(card);
+  });
+}
+
+/* =========================================================
+   TOGGLE A TOPIC'S COMPLETED STATE
+   ========================================================= */
+function toggleTopic(card, key){
+  const nowDone = !progress[key];
+  progress[key] = nowDone;
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(progress));
+
+  card.classList.toggle("completed", nowDone);
+  card.querySelector(".checkbox").textContent = nowDone ? "✓" : "";
+
+  if(nowDone){
+    card.classList.add("just-completed");
+    setTimeout(() => card.classList.remove("just-completed"), 550);
+  }
+
+  updateStats();
+}
+
+/* =========================================================
+   UPDATE ALL STATS: dashboard counters, progress bar,
+   per-section tags, section-complete banners
+   ========================================================= */
+function updateStats(){
+  const allTopics = [
+    ...quantTopics.map(t => "quant-" + t),
+    ...reasoningTopics.map(t => "reasoning-" + t)
+  ];
+  const total = allTopics.length;
+  const done = allTopics.filter(k => progress[k]).length;
+  const remaining = total - done;
+  const percent = total === 0 ? 0 : Math.round((done / total) * 100);
+
+  document.getElementById("totalCount").textContent = total;
+  document.getElementById("doneCount").textContent = done;
+  document.getElementById("remainingCount").textContent = remaining;
+  document.getElementById("percentCount").textContent = percent + "%";
+  document.getElementById("progressText").textContent = `${done} / ${total} topics`;
+  document.getElementById("progressFill").style.width = percent + "%";
+
+  updateSectionStats("quant", quantTopics, "quantTag", "quantCompleteMsg");
+  updateSectionStats("reasoning", reasoningTopics, "reasoningTag", "reasoningCompleteMsg");
+}
+
+function updateSectionStats(prefix, topics, tagId, msgId){
+  const doneCount = topics.filter(t => progress[prefix + "-" + t]).length;
+  document.getElementById(tagId).textContent = `${doneCount}/${topics.length} completed`;
+  document.getElementById(msgId).classList.toggle("show", doneCount === topics.length && topics.length > 0);
+}
+
+/* =========================================================
+   SEARCH FUNCTIONALITY
+   ========================================================= */
+document.getElementById("searchInput").addEventListener("input", (e) => {
+  const query = e.target.value.trim().toLowerCase();
+  document.querySelectorAll(".topic-card").forEach(card => {
+    const match = card.dataset.name.includes(query);
+    card.classList.toggle("hidden", !match);
+  });
+});
+
+/* =========================================================
+   NAVBAR: smooth scroll + active state
+   ========================================================= */
+const navButtons = document.querySelectorAll(".nav-btn");
+navButtons.forEach(btn => {
+  btn.addEventListener("click", () => {
+    const target = document.getElementById(btn.dataset.target);
+    target.scrollIntoView({ behavior: "smooth" });
+  });
+});
+
+/* highlight active nav button based on scroll position */
+const sections = ["dashboard","quant","reasoning"].map(id => document.getElementById(id));
+window.addEventListener("scroll", () => {
+  let currentId = sections[0].id;
+  sections.forEach(sec => {
+    if(window.scrollY + 120 >= sec.offsetTop) currentId = sec.id;
+  });
+  navButtons.forEach(btn => btn.classList.toggle("active", btn.dataset.target === currentId));
+});
+
+/* =========================================================
+   INITIALIZE APP
+   ========================================================= */
+buildGrid("quantGrid", quantTopics, "quant");
+buildGrid("reasoningGrid", reasoningTopics, "reasoning");
+updateStats();
+</script>
+</body>
+</html>
